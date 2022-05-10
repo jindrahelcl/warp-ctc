@@ -19,7 +19,6 @@ MESSAGE(STATUS "Torch found ${Torch_DIR}")
 option(WITH_GPU     "compile warp-ctc with CUDA."     ${CUDA_FOUND})
 option(WITH_TORCH   "compile warp-ctc with Torch."    ${Torch_FOUND})
 option(WITH_OMP     "compile warp-ctc with OpenMP."   ON)
-option(BUILD_TESTS  "build warp-ctc unit tests."      ON)
 option(BUILD_SHARED "build warp-ctc shared library."  ON)
 option(WITH_ROCM     "Compile PaddlePaddle with ROCM platform"             OFF)
 
@@ -166,27 +165,6 @@ IF (WITH_GPU OR WITH_ROCM)
         ENDIF()
     ENDIF()
 
-    if(BUILD_TESTS)
-        MESSAGE(STATUS "Build tests")
-
-        IF (WITH_GPU)
-            add_executable(test_cpu tests/test_cpu.cpp)
-        ELSE()
-            add_executable(test_cpu tests/test_cpu.cpp)
-        ENDIF()
-
-
-        TARGET_LINK_LIBRARIES(test_cpu warpctc)
-
-        IF (WITH_GPU)
-            cuda_add_executable(test_gpu tests/test_gpu.cu)
-            TARGET_LINK_LIBRARIES(test_gpu warpctc ${CUDA_curand_LIBRARY})
-        ELSE()
-            hip_add_executable(test_gpu tests/test_gpu.cu)
-            TARGET_LINK_LIBRARIES(test_gpu warpctc ${hiprand_LIBRARY_DIRS}/libhiprand.so)
-        ENDIF()
-    endif(BUILD_TESTS)
-
     INSTALL(TARGETS warpctc
             RUNTIME DESTINATION "bin"
             LIBRARY DESTINATION "lib"
@@ -220,11 +198,6 @@ ELSE()
     MESSAGE(STATUS "Building shared library with no GPU support")
 
     ADD_LIBRARY(warpctc ${WARPCTC_SHARED} src/ctc_entrypoint.cpp)
-
-    if(BUILD_TESTS)
-        add_executable(test_cpu tests/test_cpu.cpp )
-        TARGET_LINK_LIBRARIES(test_cpu warpctc)
-    endif(BUILD_TESTS)
 
     INSTALL(TARGETS warpctc
             RUNTIME DESTINATION "bin"
